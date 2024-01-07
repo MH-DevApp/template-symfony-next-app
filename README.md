@@ -1,5 +1,5 @@
 ![MIT License](https://img.shields.io/badge/License-MIT-green.svg)
-![Template](https://badgen.net/badge/Template/In%20progress/orange)
+![Template](https://badgen.net/badge/Version/Building/orange)
 
 # TEMPLATE - SYMFONY & NEXTJS APP
 
