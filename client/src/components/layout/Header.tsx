@@ -25,11 +25,11 @@ const Header = () => {
 
     return (
         <div className="flex justify-between px-3 py-3 shadow-sm shadow-gray-400">
-            <div>
-                <Link href={"/"} className="text-2xl font-bold hover:underline">
-                    <Image src="/next.svg" alt="Logo Next" width={394/3} height={80/2} />
-                </Link>
-            </div>
+            <Link href={"/"} className="flex flex-row gap-1 bg-orange-300/80 rounded p-2 text-2xl font-bold hover:bg-orange-300/60">
+                <Image src="/images/logos/symfony.svg" alt="Logo Symfony" width={30} height={30} />
+                <Image src="/images/logos/next-js.svg" alt="Logo Next" width={30} height={30} />
+                APP
+            </Link>
             <ActionsHeader session={session} />
         </div>
     );
