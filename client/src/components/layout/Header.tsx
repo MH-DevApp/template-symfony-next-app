@@ -7,7 +7,7 @@ const ActionsHeader = ({session}: {session: object|null}) => {
             <div className="flex items-end gap-3">
                 <Link href={"/auth/signin"} className="hover:underline">Sign in</Link>
                 <span className="text-gray-500">|</span>
-                <Link href={"/auth/register"} className="hover:underline">Register</Link>
+                <Link href={"/auth/signup"} className="hover:underline">Sign up</Link>
             </div>
         )
     }
