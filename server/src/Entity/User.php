@@ -8,6 +8,7 @@ use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV6;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
@@ -17,7 +18,6 @@ use Symfony\Component\Validator\Constraints\Regex;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity(['email'], message: 'This email is already used.')]
-#[UniqueEntity(['pseudo'], message: 'This pseudo is already used.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -29,6 +29,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 180, unique: true)]
     #[NotBlank(message: "This email is required.")]
     #[Email(message: "This email is not a valid email.")]
+    #[Groups(['user:read'])]
     private ?string $email = null;
 
     #[ORM\Column]
@@ -50,6 +51,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         message: 'Password must contain at least one minuscule, one majuscule, one number and one special char (#@./+-)'
     )]
     private ?string $password = null;
+
+    #[ORM\Column]
+    #[Groups(['user:read'])]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function getId(): ?UuidV6
     {
@@ -119,5 +124,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
         // $this->plainPassword = null;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 }
