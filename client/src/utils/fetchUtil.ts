@@ -1,6 +1,8 @@
 import {cookies} from "next/headers";
 import {z} from "zod";
 
+export const DEFAULT_SERVER_API_TOKEN_AUTH_NAME = "symf-next_token_auth";
+
 export type ErrorFieldType = { field: string; message: string; };
 
 const defaultHeaders = {
@@ -9,10 +11,10 @@ const defaultHeaders = {
 }
 
 export const fetchServerApi = async (url: string, init?: RequestInit) => {
-    if (!process.env.SERVER_API_URL || !process.env.SERVER_API_TOKEN_AUTH_NAME) {
-        throw new Error("Must be define SERVER_API_URL and SERVER_API_TOKEN_AUTH_NAME in .env file");
+    if (!process.env.SERVER_API_URL) {
+        throw new Error("Must be define SERVER_API_URL in .env file");
     }
-    const tokenApi = cookies().get(process.env.SERVER_API_TOKEN_AUTH_NAME);
+    const tokenApi = cookies().get(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME);
 
     let headers: HeadersInit = {
         ...defaultHeaders,
@@ -44,7 +46,10 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
     return responseJson;
 }
 
-export const responseServerApiSchema = (fieldsError : readonly [string, ...string[]]) => {
+export const responseServerApiSchema = ({ fieldsError, dataSchema }: {
+    fieldsError: readonly [string, ...string[]];
+    dataSchema?: z.ZodSchema;
+}) => {
     return z.object({
         success: z.boolean(),
         message: z.string(),
@@ -55,6 +60,6 @@ export const responseServerApiSchema = (fieldsError : readonly [string, ...strin
                 message: z.string()
             })
         ).optional(),
-        data: z.object({}).optional()
+        data: dataSchema ?? z.object({}).optional(),
     });
 }
