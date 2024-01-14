@@ -18,11 +18,11 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        login:
-            pattern: ^/api/auth/login
+        signin:
+            pattern: ^/api/auth/signin
             stateless: true
             json_login:
-                check_path: /api/auth/login_check
+                check_path: /api/auth/signin_check
                 success_handler: lexik_jwt_authentication.handler.authentication_success
                 failure_handler: lexik_jwt_authentication.handler.authentication_failure
 
