@@ -55,7 +55,7 @@ class LexikJWTListener
                 'message' => 'Authentication success.',
                 'token' => $event->getData()['token'],
                 'data' => [
-                    'user' => $this->serializer->normalize($event->getUser(), null, ['groups' => 'user:read'])
+                    'user' => $this->serializer->normalize($event->getUser(), 'json', ['groups' => 'user:read'])
                 ]
             ]
         );
