@@ -4,6 +4,7 @@ import './globals.scss'
 import {ReactNode} from "react";
 import Header from "@/components/layout/Header";
 import {TailwindIndicator} from "@/utils/TailwindIndicator";
+import {Providers} from "@/Providers";
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -20,9 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} flex flex-col min-h-[100vh]`}>
+      <Providers>
         <Header />
         <div className="flex flex-1 h-full px-4 py-2">{children}</div>
         <TailwindIndicator />
+      </Providers>
       </body>
     </html>
   )
