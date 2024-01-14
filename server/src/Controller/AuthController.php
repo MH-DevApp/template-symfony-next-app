@@ -46,6 +46,7 @@ class AuthController extends AbstractController
         if (count($errors) > 0) {
             return $this->json([
                 'success' => false,
+                'message' => 'There was an error creating your account.',
                 'errors' => array_map(static function($error) {
                     return [
                         'field' => $error->getPropertyPath(),
