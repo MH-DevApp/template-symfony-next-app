@@ -1,19 +1,17 @@
 "use client";
 
 import {z} from "zod";
-import {useRouter} from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorFieldType} from "@/utils/fetchUtil";
 import {useSignUpMutation} from "@/symfauth/hooks/symfAuthMutation";
 import {
     AlertCircle,
-    AlertTriangle,
     ArrowRightCircle,
-    LucideMessageCircleWarning,
-    MessageCircleWarning,
-    MessageSquareWarning
 } from "lucide-react";
+import {useSession} from "@/symfauth/session/SessionContext";
+import {useLayoutEffect} from "react";
 
 export const SignUpFormSchema = z.object({
     email: z
@@ -38,7 +36,14 @@ export const SignUpFormSchema = z.object({
 type fieldSignUpFormErrors = "email"|"password"|"root";
 
 const SignUpForm = () => {
+    const session = useSession();
     const router = useRouter();
+
+    useLayoutEffect(() => {
+        if (session.currentUser === null) {
+            redirect("/");
+        }
+    }, []);
 
     const {register, setError, handleSubmit, formState: {errors}} = useForm({
         resolver: zodResolver(SignUpFormSchema),

@@ -1,7 +1,7 @@
 "use client";
 
 import {z} from "zod";
-import {useRouter} from "next/navigation";
+import {redirect, useRouter} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorFieldType} from "@/utils/fetchUtil";
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import {useSession} from "@/symfauth/session/SessionContext";
 import {UserType} from "@/models/User";
-import {useEffect, useLayoutEffect} from "react";
+import {useLayoutEffect} from "react";
 
 export const SignInFormSchema = z.object({
     email: z
@@ -28,11 +28,10 @@ type fieldSignInFormErrors = "email"|"password"|"root";
 
 const SignInForm = () => {
     const session = useSession();
-    const router = useRouter();
 
     useLayoutEffect(() => {
         if (session.currentUser !== null) {
-            router.replace("/");
+            redirect("/");
         }
     }, []);
 
