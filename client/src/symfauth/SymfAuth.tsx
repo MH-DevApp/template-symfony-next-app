@@ -7,6 +7,7 @@ import {cookies} from "next/headers";
 import {z} from "zod";
 import {UserModel} from "@/models/User";
 import SignInForm from "@/symfauth/components/forms/SignInForm";
+import {TokenType} from "@/symfauth/session/SessionContext";
 
 export type SignUpFormProps = {
     email: string;
@@ -34,7 +35,6 @@ export const signUp = async (values: SignUpFormProps) => {
         body: JSON.stringify(values),
         cache: "no-cache",
     });
-    console.log(response);
     return responseServerApiSchema({ fieldsError: ["email", "password"] }).parse(response);
 };
 
@@ -53,7 +53,7 @@ export const signIn = async (values: SignInFormProps) => {
 
     if (response.success) {
         if (token) {
-            const { exp: tokenExp }: { exp: number|undefined; } = JSON.parse(atob(token.split(".")[1]));
+            const { exp: tokenExp }: TokenType = JSON.parse(atob(token.split(".")[1]));
 
             cookies().set(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME, token, {
                 expires: tokenExp ? tokenExp * 1000 : new Date(Date.now() + 1000 * 60 * 60),

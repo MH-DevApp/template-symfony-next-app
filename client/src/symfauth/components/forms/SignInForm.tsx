@@ -10,6 +10,9 @@ import {
     AlertCircle,
     ArrowRightToLine
 } from "lucide-react";
+import {useSession} from "@/symfauth/session/SessionContext";
+import {UserType} from "@/models/User";
+import {useEffect, useLayoutEffect} from "react";
 
 export const SignInFormSchema = z.object({
     email: z
@@ -24,7 +27,14 @@ export const SignInFormSchema = z.object({
 type fieldSignInFormErrors = "email"|"password"|"root";
 
 const SignInForm = () => {
+    const session = useSession();
     const router = useRouter();
+
+    useLayoutEffect(() => {
+        if (session.currentUser !== null) {
+            router.replace("/");
+        }
+    }, []);
 
     const {register, setError, handleSubmit, formState: {errors}} = useForm({
         resolver: zodResolver(SignInFormSchema),
@@ -34,8 +44,8 @@ const SignInForm = () => {
         }
     });
 
-    const successHandler = () => {
-        router.replace("/");
+    const successHandler = (user: UserType) => {
+        session.signIn(user);
     }
 
     const errorHandler = (errors: ErrorFieldType[]) => {
