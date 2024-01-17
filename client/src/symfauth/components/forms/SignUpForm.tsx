@@ -40,7 +40,7 @@ const SignUpForm = () => {
     const router = useRouter();
 
     useLayoutEffect(() => {
-        if (session.currentUser === null) {
+        if (session.currentUser !== null) {
             redirect("/");
         }
     }, []);
