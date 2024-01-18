@@ -3,10 +3,10 @@
 import {useSession} from "@/symfauth/session/SessionContext";
 import Link from "next/link";
 
-const AuthenticatedHeader = () => {
+const AuthenticatedHeader = ({signOut}: {signOut: () => void;}) => {
     return (
         <div className="flex items-end gap-3">
-            <Link href={"/auth/signout"} className="hover:underline">Sign out</Link>
+            <Link href={"/"} onClick={() => signOut()} className="hover:underline">Sign out</Link>
         </div>
     )
 }
@@ -22,10 +22,10 @@ const UnauthenticatedHeader = () => {
 }
 
 const ActionsHeader = () => {
-    const {currentUser} = useSession();
+    const {currentUser, signOut} = useSession();
 
     if (currentUser !== null) {
-        return <AuthenticatedHeader />
+        return <AuthenticatedHeader signOut={signOut} />
     }
 
     return <UnauthenticatedHeader />

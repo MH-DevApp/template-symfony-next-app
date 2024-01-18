@@ -5,6 +5,7 @@ import {useRouter} from "next/navigation";
 export type SessionType = {
     currentUser: UserType|null;
     signIn: (user: UserType) => void;
+    signOut: () => void;
 }
 
 export type TokenType = {
@@ -30,10 +31,20 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
     const [currentUser, setCurrentUser] = useState<UserType|null>(user);
     const router = useRouter();
 
-    function signIn (user: UserType) {
+    const signIn = (user: UserType) => {
         setCurrentUser(() => user);
         router.replace("/");
     }
 
-    return {currentUser, signIn};
+    const signOut = async () => {
+        const response = await fetch("/api/auth/signout", { cache: "no-cache"});
+        const responseJson = await response.json();
+
+        if (responseJson.success) {
+            setCurrentUser(() => null);
+            router.replace("/");
+        }
+    }
+
+    return {currentUser, signIn, signOut};
 }
