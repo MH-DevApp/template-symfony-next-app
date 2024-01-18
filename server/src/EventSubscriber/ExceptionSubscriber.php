@@ -18,18 +18,20 @@ class ExceptionSubscriber implements EventSubscriberInterface
     public function onKernelException(ExceptionEvent $event): void
     {
         $exception = $event->getThrowable();
+        $statusCode = 500;
+
         $data = [
-            'status' => 500,
+            'success' => false,
             'message' => $exception->getMessage()
         ];
 
         $this->logger->info("Exception Intercepted : ".$exception->getMessage());
 
         if ($exception instanceof HttpException) {
-            $data['status'] = $exception->getStatusCode();
+            $statusCode = $exception->getStatusCode();
         }
 
-        $event->setResponse(new JsonResponse($data, $data['status']));
+        $event->setResponse(new JsonResponse($data, $statusCode));
     }
 
     public static function getSubscribedEvents(): array
