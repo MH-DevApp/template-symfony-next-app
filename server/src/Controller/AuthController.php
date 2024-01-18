@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Serializer\SerializerInterface;
@@ -16,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AuthController extends AbstractController
 {
     #[Route('/signup', name: 'signup', methods: ['POST'])]
-    public function index(
+    public function signup(
         Request $request,
         SerializerInterface $serializer,
         ValidatorInterface $validator,
@@ -71,5 +72,40 @@ class AuthController extends AbstractController
             'success' => true,
             'message' => 'Your account has been created. You can now log in.'
         ]);
+    }
+
+    #[Route('/current-user', name: 'current-user', methods: ['GET'])]
+    public function getCurrentUser(
+        SerializerInterface $serializer
+    ): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        if (!$user) {
+            return $this->json([
+                'success' => false,
+                'message' => 'You are not logged in.',
+                'data' => [
+                    'user' => null
+                ]
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $response = $serializer->serialize(
+            [
+                'success' => true,
+                'message' => 'You are logged in.',
+                'data' => [
+                    'user' => $user
+                ]
+            ],
+            'json',
+            [
+                'groups' => 'user:read'
+            ]
+        );
+
+        return new JsonResponse($response, json: true);
     }
 }
