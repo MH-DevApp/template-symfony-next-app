@@ -4,7 +4,6 @@ import SignUpForm from "@/symfauth/components/forms/SignUpForm";
 import {notFound} from "next/navigation";
 import {
     DEFAULT_SERVER_API_TOKEN_AUTH_NAME,
-    fetchNextApi,
     fetchServerApi,
     responseServerApiSchema
 } from "@/utils/fetchUtil";
@@ -46,7 +45,7 @@ export const getServerSideCurrentUser = async () => {
             user: UserModel.nullable()
         });
 
-        const response = await fetchNextApi("auth/current-user", {
+        const response = await fetchServerApi("auth/current-user", {
             method: "GET",
             cache: "no-cache",
         });
