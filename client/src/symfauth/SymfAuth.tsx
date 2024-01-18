@@ -2,7 +2,12 @@
 
 import SignUpForm from "@/symfauth/components/forms/SignUpForm";
 import {notFound} from "next/navigation";
-import {DEFAULT_SERVER_API_TOKEN_AUTH_NAME, fetchServerApi, responseServerApiSchema} from "@/utils/fetchUtil";
+import {
+    DEFAULT_SERVER_API_TOKEN_AUTH_NAME,
+    fetchNextApi,
+    fetchServerApi,
+    responseServerApiSchema
+} from "@/utils/fetchUtil";
 import {cookies} from "next/headers";
 import {z} from "zod";
 import {UserModel} from "@/models/User";
@@ -29,6 +34,33 @@ export const SymfAuthRouter = async ({params}: {params: { SymfAuth: string[] }|u
             return notFound();
     }
 }
+
+export const getServerSideCurrentUser = async () => {
+    if (!cookies().get(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME)
+    ) {
+        return null;
+    }
+
+    try {
+        const dataSchema = z.object({
+            user: UserModel.nullable()
+        });
+
+        const response = await fetchNextApi("auth/current-user", {
+            method: "GET",
+            cache: "no-cache",
+        });
+
+        if (!response.success) {
+            return null;
+        }
+
+        return dataSchema.parse(response.data).user;
+    } catch (e) {
+        return null;
+    }
+}
+
 export const signUp = async (values: SignUpFormProps) => {
     const response = await fetchServerApi("auth/signup", {
         method: "POST",

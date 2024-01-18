@@ -26,8 +26,8 @@ export const useSession = (): SessionType => {
     return session;
 }
 
-export const useSessionProvider = (): SessionType => {
-    const [currentUser, setCurrentUser] = useState<UserType|null>(null);
+export const useSessionProvider = (user: UserType|null): SessionType => {
+    const [currentUser, setCurrentUser] = useState<UserType|null>(user);
     const router = useRouter();
 
     function signIn (user: UserType) {
