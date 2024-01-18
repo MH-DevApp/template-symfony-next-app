@@ -25,13 +25,6 @@ class AuthController extends AbstractController
         EntityManagerInterface $em
     ): JsonResponse
     {
-        $content = $serializer->serialize(
-            [
-                'class_name' => 'User',
-                ...$request->toArray()
-            ], 'json'
-        );
-
         $newUser = $serializer->deserialize(
             $serializer->serialize(
                 [
