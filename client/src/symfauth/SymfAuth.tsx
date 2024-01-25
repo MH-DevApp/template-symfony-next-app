@@ -3,7 +3,6 @@
 import SignUpForm from "@/symfauth/components/forms/SignUpForm";
 import {notFound} from "next/navigation";
 import {
-    DEFAULT_SERVER_API_TOKEN_AUTH_NAME,
     fetchServerApi,
     responseServerApiSchema
 } from "@/utils/fetchUtil";
@@ -12,6 +11,7 @@ import {z} from "zod";
 import {UserModel} from "@/models/User";
 import SignInForm from "@/symfauth/components/forms/SignInForm";
 import {TokenType} from "@/symfauth/session/SessionContext";
+import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
 
 export type SignUpFormProps = {
     email: string;
@@ -35,7 +35,7 @@ export const SymfAuthRouter = async ({params}: {params: { SymfAuth: string[] }|u
 }
 
 export const getServerSideCurrentUser = async () => {
-    if (!cookies().get(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME)
+    if (!cookies().get(COOKIE_JWT_NAME)
     ) {
         return null;
     }
@@ -86,7 +86,7 @@ export const signIn = async (values: SignInFormProps) => {
         if (token) {
             const { exp: tokenExp }: TokenType = JSON.parse(atob(token.split(".")[1]));
 
-            cookies().set(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME, token, {
+            cookies().set(COOKIE_JWT_NAME, token, {
                 expires: tokenExp ? tokenExp * 1000 : new Date(Date.now() + 1000 * 60 * 60),
                 sameSite: "lax"
             });

@@ -1,7 +1,6 @@
 import {cookies} from "next/headers";
 import {z} from "zod";
-
-export const DEFAULT_SERVER_API_TOKEN_AUTH_NAME = "symf-next_token_auth";
+import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
 
 export type ErrorFieldType = { field: string; message: string; };
 
@@ -14,7 +13,7 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
     if (!process.env.SERVER_API_URL) {
         throw new Error("Must be define SERVER_API_URL in .env file");
     }
-    const tokenApi = cookies().get(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME);
+    const tokenApi = cookies().get(COOKIE_JWT_NAME);
 
     let headers: HeadersInit = {
         ...defaultHeaders,
@@ -50,8 +49,8 @@ export const fetchNextApi = async (url: string, init?: RequestInit) => {
     if (!process.env.API_URL) {
         throw new Error("Must be define NEXT_API_URL in .env file");
     }
-    const tokenAuthName = process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME;
-    const tokenApi = cookies().get(tokenAuthName);
+
+    const tokenApi = cookies().get(COOKIE_JWT_NAME);
 
     let headers: HeadersInit = {
         ...defaultHeaders,
@@ -61,7 +60,7 @@ export const fetchNextApi = async (url: string, init?: RequestInit) => {
     if (tokenApi) {
         headers = {
             ...headers,
-            "cookie": `${tokenAuthName}=${tokenApi.value}`,
+            "cookie": `${COOKIE_JWT_NAME}=${tokenApi.value}`,
         }
     }
 
