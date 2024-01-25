@@ -1,8 +1,15 @@
 import {cookies} from "next/headers";
-import {DEFAULT_SERVER_API_TOKEN_AUTH_NAME} from "@/utils/fetchUtil";
+import {fetchServerApi} from "@/utils/fetchUtil";
+import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
 
-export async function GET() {
-    cookies().delete(process.env.SERVER_API_TOKEN_AUTH_NAME ?? DEFAULT_SERVER_API_TOKEN_AUTH_NAME);
+export async function POST() {
+    await fetchServerApi("auth/signout", {
+        method: "POST",
+        cache: "no-cache"
+    });
+
+    cookies().delete(COOKIE_JWT_NAME);
+
     return Response.json({
         success: true,
         message: "You have been logged out"

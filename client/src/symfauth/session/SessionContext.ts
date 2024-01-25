@@ -1,6 +1,7 @@
 import {UserType} from "@/models/User";
-import {createContext, useContext, useState} from "react";
+import {createContext, useContext, useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
+import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
 
 export type SessionType = {
     currentUser: UserType|null;
@@ -31,13 +32,22 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
     const [currentUser, setCurrentUser] = useState<UserType|null>(user);
     const router = useRouter();
 
+    useEffect(() => {
+        if (
+            !user &&
+            document.cookie.includes(COOKIE_JWT_NAME)
+        ) {
+            signOut().then();
+        }
+    }, [])
+
     const signIn = (user: UserType) => {
         setCurrentUser(() => user);
         router.replace("/");
     }
 
     const signOut = async () => {
-        const response = await fetch("/api/auth/signout", { cache: "no-cache"});
+        const response = await fetch("/api/auth/signout", { method: "POST", cache: "no-cache"});
         const responseJson = await response.json();
 
         if (responseJson.success) {

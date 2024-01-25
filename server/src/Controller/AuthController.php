@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Repository\TokenSessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -65,6 +66,41 @@ class AuthController extends AbstractController
             'success' => true,
             'message' => 'Your account has been created. You can now log in.'
         ]);
+    }
+
+    #[Route('/signout', name: 'signout', methods: ['POST'])]
+    public function signOut(Request $request, TokenSessionRepository $tokenSessionRepository, EntityManagerInterface $em): Response
+    {
+        if ($request->headers->get('Authorization')) {
+            $token = str_replace(
+                "Bearer ",
+                "",
+                $request->headers->get('Authorization')
+            );
+
+            $tokenSession = $tokenSessionRepository->findOneBy([
+                "tokenValue" => $token
+            ]);
+
+            if (
+                $tokenSession &&
+                $tokenSession->getExpiratedAt() > new \DateTimeImmutable('now') &&
+                $this->getUser() === $tokenSession->getUserLink()
+            ) {
+                $tokenSession->setExpiratedAt((new \DateTimeImmutable('now'))->modify('-1 second'));
+                $em->flush();
+
+                return $this->json([
+                    'success' => true,
+                    'message' => 'You are now logged out.'
+                ]);
+            }
+        }
+
+        return $this->json([
+            'success' => false,
+            'message' => 'You are not logged in.'
+        ], Response::HTTP_UNAUTHORIZED);
     }
 
     #[Route('/current-user', name: 'current-user', methods: ['GET'])]
