@@ -11,7 +11,7 @@ import {z} from "zod";
 import {UserModel} from "@/models/User";
 import SignInForm from "@/symfauth/components/forms/SignInForm";
 import {TokenType} from "@/symfauth/session/SessionContext";
-import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
+import {COOKIE_JWT_NAME, COOKIE_JWT_TTL} from "@/utils/defaultValues";
 
 export type SignUpFormProps = {
     email: string;
@@ -87,7 +87,7 @@ export const signIn = async (values: SignInFormProps) => {
             const { exp: tokenExp }: TokenType = JSON.parse(atob(token.split(".")[1]));
 
             cookies().set(COOKIE_JWT_NAME, token, {
-                expires: tokenExp ? tokenExp * 1000 : new Date(Date.now() + 1000 * 60 * 60),
+                expires: tokenExp ? tokenExp * 1000 : new Date(Date.now() + COOKIE_JWT_TTL),
                 sameSite: "lax"
             });
         }

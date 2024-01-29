@@ -5,6 +5,9 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     env(JWT_TOKEN_TTL): '86400'
+    env(REFRESH_TOKEN_TICK): '900'
+    JWT_TOKEN_TTL: '%env(JWT_TOKEN_TTL)%'
+    REFRESH_TOKEN_TICK: '%env(REFRESH_TOKEN_TICK)%'
 
 services:
     # default configuration for services in *this* file
