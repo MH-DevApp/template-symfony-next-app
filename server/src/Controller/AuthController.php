@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\TokenSession;
 use App\Entity\User;
 use App\Repository\TokenSessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,7 +71,11 @@ class AuthController extends AbstractController
     }
 
     #[Route('/signout', name: 'signout', methods: ['POST'])]
-    public function signOut(Request $request, TokenSessionRepository $tokenSessionRepository, EntityManagerInterface $em): Response
+    public function signOut(
+        Request $request,
+        TokenSessionRepository $tokenSessionRepository,
+        EntityManagerInterface $em
+    ): JsonResponse
     {
         if ($request->headers->get('Authorization')) {
             $token = str_replace(
@@ -136,5 +142,66 @@ class AuthController extends AbstractController
         );
 
         return new JsonResponse($response, json: true);
+    }
+
+
+    #[Route('/refresh-token', name: 'refresh-token', methods: ['POST'])]
+    public function refreshToken(
+        Request $request,
+        JWTTokenManagerInterface $JWTTokenManager,
+        EntityManagerInterface $em,
+        TokenSessionRepository $tokenSessionRepository,
+    ): JsonResponse
+    {
+        $headerAuthorization = $request->headers->get('Authorization');
+
+        if ($headerAuthorization && str_contains($headerAuthorization, 'Bearer') && $this->getUser()) {
+            /** @var User $user */
+            $user = $this->getUser();
+
+            $token = explode(' ', $request->headers->get('Authorization'))[1];
+
+            $tokenSession = $tokenSessionRepository->findOneBy([
+                'tokenValue' => $token
+            ]);
+
+            $refreshTokenTick = $this->getParameter('REFRESH_TOKEN_TICK');
+
+            if ($token && $tokenSession) {
+                if ($tokenSession->getCreatedAt()->modify("+$refreshTokenTick second") <= new \DateTimeImmutable('now')) {
+                    $tokenSession->setExpiratedAt((new \DateTimeImmutable('now'))->modify('-1 second'));
+
+                    $newToken = $JWTTokenManager->create($user);
+                    $newTokenParse = json_decode(base64_decode(explode('.', $newToken)[1], true), true);
+
+                    $newTokenSession = (new TokenSession())
+                        ->setUserLink($user)
+                        ->setTokenValue($newToken)
+                        ->setCreatedAt((new \DateTimeImmutable())->setTimestamp($newTokenParse['iat']))
+                        ->setExpiratedAt((new \DateTimeImmutable())->setTimestamp($newTokenParse['exp']));
+
+                    $em->persist($newTokenSession);
+                    $em->flush();
+
+                    return $this->json([
+                        'success' => true,
+                        'message' => 'You have been refresh token !',
+                        'data' => [
+                            'tokenRefreshed' => $newToken
+                        ]
+                    ]);
+                }
+
+                return $this->json([
+                    'success' => true,
+                    'message' => 'Not yet time to refresh token !',
+                ]);
+            }
+        }
+
+        return $this->json([
+            'success' => false,
+            'message' => 'You are not logged in.'
+        ]);
     }
 }

@@ -93,9 +93,11 @@ class LexikJWTListener
         if ($headerAuthorization) {
             if (!str_contains($headerAuthorization, 'Bearer')) {
                 $event->markAsInvalid();
+                return;
             }
 
             $token = explode(' ', $this->requestStack->getCurrentRequest()->headers->get('Authorization'))[1];
+
             $tokenSessionRepository = $this->em->getRepository(TokenSession::class);
 
             $tokenSession = $tokenSessionRepository->findOneBy([
