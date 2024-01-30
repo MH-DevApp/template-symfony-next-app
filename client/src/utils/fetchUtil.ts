@@ -1,6 +1,6 @@
 import {cookies} from "next/headers";
 import {z} from "zod";
-import {COOKIE_JWT_NAME} from "@/utils/defaultValues";
+import {COOKIE_JWT_NAME, SERVER_API_KEY} from "@/utils/defaultValues";
 
 export type ErrorFieldType = { field: string; message: string; };
 
@@ -25,6 +25,14 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
             ...headers,
             "Authorization": `Bearer ${tokenApi.value}`,
         }
+    }
+
+    if (SERVER_API_KEY) {
+        headers = {
+            ...headers,
+            "x-api-server-key": SERVER_API_KEY,
+        }
+
     }
 
     const response = await fetch(`${process.env.SERVER_API_URL}${url}`, {

@@ -6,8 +6,10 @@
 parameters:
     env(JWT_TOKEN_TTL): '86400'
     env(REFRESH_TOKEN_TICK): '900'
+    env(SERVER_API_KEY): null
     JWT_TOKEN_TTL: '%env(JWT_TOKEN_TTL)%'
     REFRESH_TOKEN_TICK: '%env(REFRESH_TOKEN_TICK)%'
+    SERVER_API_KEY: '%env(SERVER_API_KEY)%'
 
 services:
     # default configuration for services in *this* file
@@ -33,6 +35,11 @@ services:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccessResponse }
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_failure, method: onAuthenticationFailureResponse }
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
+
+    request_listener:
+        class: App\EventListener\RequestListener
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onRequestListener }
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

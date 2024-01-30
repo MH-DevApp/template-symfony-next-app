@@ -10,14 +10,24 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTDecodedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTFailureEventInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class LexikJWTListener
 {
-    public function __construct(private SerializerInterface $serializer, private EntityManagerInterface $em, private JWTTokenManagerInterface $JWTManager, private RequestStack $requestStack)
+    public function __construct(
+        private readonly SerializerInterface      $serializer,
+        private readonly EntityManagerInterface   $em,
+        private readonly JWTTokenManagerInterface $JWTManager,
+        private readonly RequestStack             $requestStack,
+        private readonly ContainerBagInterface    $container
+    )
     {
     }
 
@@ -52,10 +62,23 @@ class LexikJWTListener
         $event->setResponse($response);
     }
 
+    /**
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
     public function onAuthenticationSuccessResponse(AuthenticationSuccessEvent $event): void
     {
         if (!$event->getUser() instanceof UserInterface) {
             return;
+        }
+
+        if ($this->container->has("SERVER_API_KEY") && $this->container->get("SERVER_API_KEY") !== null) {
+            if (
+                !$this->requestStack->getCurrentRequest()->headers->has("x-api-server-key") ||
+                $this->requestStack->getCurrentRequest()->headers->get("x-api-server-key") !== $this->container->get("SERVER_API_KEY")
+            ) {
+                throw new HttpException(500, "Communication with the server failed.");
+            }
         }
 
         /** @var User $user */

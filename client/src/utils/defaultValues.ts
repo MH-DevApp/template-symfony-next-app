@@ -7,3 +7,5 @@ export const REFRESH_TOKEN_TICK =
     process.env.NEXT_PUBLIC_REFRESH_TOKEN_TICK ?
     parseInt(process.env.NEXT_PUBLIC_REFRESH_TOKEN_TICK) :
     900;
+
+export const SERVER_API_KEY = process.env.SERVER_API_KEY;
