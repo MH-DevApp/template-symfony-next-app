@@ -40,7 +40,8 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "Scripts\\": "scripts/"
         }
     },
     "autoload-dev": {
@@ -67,6 +68,9 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "api-key": [
+            "php scripts/generateServerAPIKey.php"
         ]
     },
     "conflict": {
