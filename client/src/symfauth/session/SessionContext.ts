@@ -72,6 +72,11 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
             return false;
         }
 
+        if (!currentUser && token) {
+            await signOut();
+            return false;
+        }
+
         const decodedToken: TokenType = JSON.parse(atob(token));
 
         if (decodedToken.iat + REFRESH_TOKEN_TICK < Date.now() / 1000) {
@@ -79,6 +84,7 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
             const responseJson = await response.json();
 
             if (!responseJson.success) {
+                console.log(responseJson)
                 await signOut();
             }
 
