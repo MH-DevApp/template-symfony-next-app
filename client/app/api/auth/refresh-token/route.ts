@@ -25,8 +25,6 @@ export async function POST() {
                 cache: "no-cache"
             });
 
-            console.log(response);
-
             if (response.success && response.data.tokenRefreshed) {
                 const { exp: tokenRefreshedExp }: TokenType = JSON.parse(atob(response.data.tokenRefreshed.split(".")[1]));
 

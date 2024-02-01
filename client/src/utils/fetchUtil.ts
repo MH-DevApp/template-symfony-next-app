@@ -1,4 +1,4 @@
-import {cookies} from "next/headers";
+import {cookies, headers} from "next/headers";
 import {z} from "zod";
 import {COOKIE_JWT_NAME, SERVER_API_KEY} from "@/utils/defaultValues";
 
@@ -14,22 +14,24 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
         throw new Error("Must be define SERVER_API_URL in .env file");
     }
     const tokenApi = cookies().get(COOKIE_JWT_NAME);
+    const ip = headers().get('x-forwarded-for');
 
-    let headers: HeadersInit = {
+    let headersInit: HeadersInit = {
         ...defaultHeaders,
+        "x-agent-ip": ip ?? "",
         ...init?.headers ?? {},
     };
 
     if (tokenApi) {
-        headers = {
-            ...headers,
+        headersInit = {
+            ...headersInit,
             "Authorization": `Bearer ${tokenApi.value}`,
         }
     }
 
     if (SERVER_API_KEY) {
-        headers = {
-            ...headers,
+        headersInit = {
+            ...headersInit,
             "x-api-server-key": SERVER_API_KEY,
         }
 
@@ -38,7 +40,7 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
     const response = await fetch(`${process.env.SERVER_API_URL}${url}`, {
         method: init?.method ?? "GET",
         body: init?.body,
-        headers: headers,
+        headers: headersInit,
         cache: init?.cache ?? "default"
     });
 
