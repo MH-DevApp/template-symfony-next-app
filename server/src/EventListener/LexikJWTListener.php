@@ -7,11 +7,13 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationFailureEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\AuthenticationSuccessEvent;
+use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTDecodedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTFailureEventInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -26,7 +28,8 @@ class LexikJWTListener
         private readonly EntityManagerInterface   $em,
         private readonly JWTTokenManagerInterface $JWTManager,
         private readonly RequestStack             $requestStack,
-        private readonly ContainerBagInterface    $container
+        private readonly ContainerBagInterface    $container,
+        private readonly LoggerInterface          $logger
     )
     {
     }
@@ -111,10 +114,19 @@ class LexikJWTListener
 
     public function onJWTDecoded(JWTDecodedEvent $event): void
     {
+        if ($this->requestStack->getCurrentRequest()->server->get('REQUEST_URI') === '/api/auth/signout') {
+            return;
+        }
+
         $headerAuthorization = $this->requestStack->getCurrentRequest()->headers->get('Authorization');
 
         if ($headerAuthorization) {
-            if (!str_contains($headerAuthorization, 'Bearer')) {
+            if (!str_contains($headerAuthorization, 'Bearer') ||
+                (
+                    $this->requestStack->getCurrentRequest()->headers->has('x-agent-ip') &&
+                    $event->getPayload()['ip'] !== $this->requestStack->getCurrentRequest()->headers->get('x-agent-ip')
+                )
+            ) {
                 $event->markAsInvalid();
                 return;
             }
@@ -135,5 +147,16 @@ class LexikJWTListener
                 $event->markAsInvalid();
             }
         }
+    }
+
+    public function onJWTCreated(JWTCreatedEvent $event)
+    {
+        $payload = $event->getData();
+
+        if ($this->requestStack->getCurrentRequest()->headers->has('x-agent-ip')) {
+            $payload['ip'] = $this->requestStack->getCurrentRequest()->headers->get('x-agent-ip');
+        }
+
+        $event->setData($payload);
     }
 }
