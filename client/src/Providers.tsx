@@ -5,12 +5,12 @@ import {PropsWithChildren} from "react";
 import SessionProvider from "@/symfauth/session/SessionProvider";
 import {UserType} from "@/models/User";
 
-export const Providers = ({children, currentUser}: PropsWithChildren<{currentUser: UserType|null}>) => {
+export const Providers = ({children, currentSession}: PropsWithChildren<{currentSession: { user: UserType|null; tokenValue: string|null }|null}>) => {
     const queryClient = new QueryClient();
 
     return (
         <QueryClientProvider client={queryClient}>
-            <SessionProvider currentUser={currentUser}>
+            <SessionProvider currentSession={currentSession}>
                 {children}
             </SessionProvider>
         </QueryClientProvider>

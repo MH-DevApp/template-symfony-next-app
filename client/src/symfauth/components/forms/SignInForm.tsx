@@ -1,7 +1,7 @@
 "use client";
 
 import {z} from "zod";
-import {redirect, useRouter} from "next/navigation";
+import {redirect} from "next/navigation";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ErrorFieldType} from "@/utils/fetchUtil";
@@ -43,8 +43,8 @@ const SignInForm = () => {
         }
     });
 
-    const successHandler = (user: UserType) => {
-        session.signIn(user);
+    const successHandler = (user: UserType, tokenValue: string) => {
+        session.signIn(user, tokenValue);
     }
 
     const errorHandler = (errors: ErrorFieldType[]) => {

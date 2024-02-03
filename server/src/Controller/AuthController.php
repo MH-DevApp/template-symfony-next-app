@@ -111,6 +111,8 @@ class AuthController extends AbstractController
 
     #[Route('/current-user', name: 'current-user', methods: ['GET'])]
     public function getCurrentUser(
+        Request $request,
+        TokenSessionRepository $tokenSessionRepository,
         SerializerInterface $serializer
     ): JsonResponse
     {
@@ -127,12 +129,23 @@ class AuthController extends AbstractController
             ], Response::HTTP_UNAUTHORIZED);
         }
 
+        $tokenValue = null;
+
+        if ($request->headers->has("x-session-id")) {
+            $tokenSession = $tokenSessionRepository->findOneBy(["id" => $request->headers->get("x-session-id")]);
+
+            if ($tokenSession) {
+                $tokenValue = explode('.', $tokenSession->getTokenValue())[1];
+            }
+        }
+
         $response = $serializer->serialize(
             [
                 'success' => true,
                 'message' => 'You are logged in.',
                 'data' => [
-                    'user' => $user
+                    'user' => $user,
+                    'tokenValue' => $tokenValue
                 ]
             ],
             'json',
@@ -187,7 +200,8 @@ class AuthController extends AbstractController
                         'success' => true,
                         'message' => 'You have been refresh token !',
                         'data' => [
-                            'tokenRefreshed' => $newToken
+                            'token' => $newTokenSession->getId(),
+                            'tokenValue' => explode('.',$newToken)[1]
                         ]
                     ]);
                 }

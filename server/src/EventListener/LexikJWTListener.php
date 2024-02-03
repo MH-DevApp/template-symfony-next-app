@@ -13,7 +13,6 @@ use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTFailureEventInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -29,7 +28,6 @@ class LexikJWTListener
         private readonly JWTTokenManagerInterface $JWTManager,
         private readonly RequestStack             $requestStack,
         private readonly ContainerBagInterface    $container,
-        private readonly LoggerInterface          $logger
     )
     {
     }
@@ -104,9 +102,10 @@ class LexikJWTListener
             [
                 'success' => true,
                 'message' => 'Authentication success.',
-                'token' => $token,
+                'token' => $tokenSession->getId(),
                 'data' => [
-                    'user' => $this->serializer->normalize($event->getUser(), 'json', ['groups' => 'user:read'])
+                    'user' => $this->serializer->normalize($event->getUser(), 'json', ['groups' => 'user:read']),
+                    'tokenValue' => explode('.', $token)[1]
                 ]
             ]
         );

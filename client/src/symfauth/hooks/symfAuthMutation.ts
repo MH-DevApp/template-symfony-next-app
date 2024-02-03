@@ -7,7 +7,7 @@ import {SignInFormSchema} from "@/symfauth/components/forms/SignInForm";
 import {UserModel, UserType} from "@/models/User";
 
 type MutationSignInProps = {
-    successHandler: (user: UserType) => void;
+    successHandler: (user: UserType, tokenValue: string) => void;
     errorHandler: (errors: ErrorFieldType[]) => void;
 }
 
@@ -54,7 +54,8 @@ export const useSignInMutation = ({successHandler, errorHandler}: MutationSignIn
 
             try {
                 const user: UserType = UserModel.parse(response.data.user);
-                successHandler(user);
+                const tokenValue: string = z.string().parse(response.data.tokenValue);
+                successHandler(user, tokenValue);
             } catch (error) {
                 throw new Error("There are errors in the response of the server. Please try again later. If the problem persists, contact the administrator");
             }

@@ -6,7 +6,7 @@ import {useQuery} from "@tanstack/react-query";
 
 export type SessionType = {
     currentUser: UserType|null;
-    signIn: (user: UserType) => void;
+    signIn: (user: UserType, tokenValue: string) => void;
     signOut: () => void;
     refreshSession: () => Promise<boolean>;
 }
@@ -39,12 +39,14 @@ export const useSession = (): SessionType => {
     return session;
 }
 
-export const useSessionProvider = (user: UserType|null): SessionType => {
-    const [currentUser, setCurrentUser] = useState<UserType|null>(user);
+export const useSessionProvider = (currentSession: {user: UserType|null; tokenValue: string|null} | null): SessionType => {
+    const [currentUser, setCurrentUser] = useState<UserType|null>(currentSession?.user ?? null);
+    const [tokenJWT, setTokenJWT] = useState<string|null>(currentSession?.tokenValue ?? null);
     const router = useRouter();
 
-    const signIn = (user: UserType) => {
+    const signIn = (user: UserType, tokenValue: string) => {
         setCurrentUser(() => user);
+        setTokenJWT(() => tokenValue);
         router.replace("/");
     }
 
@@ -54,6 +56,7 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
 
         if (responseJson.success) {
             setCurrentUser(() => null);
+            setTokenJWT(() => null);
             router.replace("/");
         }
     }
@@ -62,33 +65,35 @@ export const useSessionProvider = (user: UserType|null): SessionType => {
         const token = document.cookie
             .split(";")
             .find((c) => c.trim().startsWith(COOKIE_JWT_NAME))
-            ?.split("=")[1]
-            ?.split(".")[1];
+            ?.split("=")[1];
 
         if (!token) {
-            if (currentUser) {
+            if (currentUser || tokenJWT) {
                 setCurrentUser(() => null);
+                setTokenJWT(() => null);
             }
             return false;
         }
 
-        if (!currentUser && token) {
+        if ((!currentUser || !tokenJWT) && token) {
             await signOut();
             return false;
         }
 
-        const decodedToken: TokenType = JSON.parse(atob(token));
+        const decodedToken: TokenType = JSON.parse(atob(tokenJWT as string));
 
         if (decodedToken.iat + REFRESH_TOKEN_TICK < Date.now() / 1000) {
             const response = await fetch("/api/auth/refresh-token", { method: "POST", cache: "no-cache"});
             const responseJson = await response.json();
 
             if (!responseJson.success) {
-                console.log(responseJson)
                 await signOut();
+                return false;
             }
 
-            return responseJson.success;
+            setTokenJWT(() => responseJson.data.tokenValue);
+
+            return true;
         }
 
         return false;

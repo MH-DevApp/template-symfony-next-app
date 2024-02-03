@@ -25,7 +25,7 @@ export const fetchServerApi = async (url: string, init?: RequestInit) => {
     if (tokenApi) {
         headersInit = {
             ...headersInit,
-            "Authorization": `Bearer ${tokenApi.value}`,
+            "x-session-id": tokenApi.value,
         }
     }
 

@@ -34,7 +34,7 @@ export const SymfAuthRouter = async ({params}: {params: { SymfAuth: string[] }|u
     }
 }
 
-export const getServerSideCurrentUser = async () => {
+export const getServerSideSession = async () => {
     if (!cookies().get(COOKIE_JWT_NAME)
     ) {
         return null;
@@ -42,7 +42,8 @@ export const getServerSideCurrentUser = async () => {
 
     try {
         const dataSchema = z.object({
-            user: UserModel.nullable()
+            user: UserModel.nullable(),
+            tokenValue: z.string().nullable()
         });
 
         const response = await fetchServerApi("auth/current-user", {
@@ -51,10 +52,13 @@ export const getServerSideCurrentUser = async () => {
         });
 
         if (!response.success) {
-            return null;
+            return {
+                user: null,
+                tokenValue: null
+            };
         }
 
-        return dataSchema.parse(response.data).user;
+        return dataSchema.parse(response.data);
     } catch (e) {
         return null;
     }
@@ -83,8 +87,8 @@ export const signIn = async (values: SignInFormProps) => {
 
 
     if (response.success) {
-        if (token) {
-            const { exp: tokenExp }: TokenType = JSON.parse(atob(token.split(".")[1]));
+        if (token && response.data.tokenValue) {
+            const { exp: tokenExp }: TokenType = JSON.parse(atob(response.data.tokenValue));
 
             cookies().set(COOKIE_JWT_NAME, token, {
                 expires: tokenExp ? tokenExp * 1000 : new Date(Date.now() + COOKIE_JWT_TTL),
@@ -92,7 +96,8 @@ export const signIn = async (values: SignInFormProps) => {
             });
         }
         dataSchema = z.object({
-            user: UserModel
+            user: UserModel,
+            tokenValue: z.string()
         });
     }
 

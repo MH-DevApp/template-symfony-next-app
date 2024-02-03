@@ -7,7 +7,7 @@ import {COOKIE_JWT_NAME, COOKIE_JWT_TTL, REFRESH_TOKEN_TICK} from "@/utils/defau
 
 export async function POST() {
     try {
-        const token = cookies().get(COOKIE_JWT_NAME)?.value.split(".")[1];
+        const token = cookies().get(COOKIE_JWT_NAME)?.value;
 
         if (!token) {
             return Response.json({
@@ -16,35 +16,21 @@ export async function POST() {
             });
         }
 
+        const response: {success: boolean; message: string; data: {token?: string, tokenValue?: string;}} = await fetchServerApi("auth/refresh-token", {
+            method: "POST",
+            cache: "no-cache"
+        });
 
-        const decodedToken: TokenType = JSON.parse(atob(token));
+        if (response.success && response.data.token && response.data.tokenValue) {
+            const { exp: tokenRefreshedExp }: TokenType = JSON.parse(atob(response.data.tokenValue));
 
-        if (decodedToken.iat + REFRESH_TOKEN_TICK < Date.now() / 1000) {
-            const response: {success: boolean; message: string; data: {tokenRefreshed?: string;}} = await fetchServerApi("auth/refresh-token", {
-                method: "POST",
-                cache: "no-cache"
-            });
-
-            if (response.success && response.data.tokenRefreshed) {
-                const { exp: tokenRefreshedExp }: TokenType = JSON.parse(atob(response.data.tokenRefreshed.split(".")[1]));
-
-                cookies().set(COOKIE_JWT_NAME, response.data.tokenRefreshed, {
-                    expires: tokenRefreshedExp ? tokenRefreshedExp * 1000 : new Date(Date.now() + COOKIE_JWT_TTL),
-                    sameSite: "lax"
-                });
-            }
-
-            return Response.json({
-                success: response.success,
-                message: response.message
+            cookies().set(COOKIE_JWT_NAME, response.data.token, {
+                expires: tokenRefreshedExp ? tokenRefreshedExp * 1000 : new Date(Date.now() + COOKIE_JWT_TTL),
+                sameSite: "lax"
             });
         }
 
-        return Response.json({
-            success: true,
-            message: "Token has not need to be refreshed"
-        });
-
+        return Response.json(response);
 
     } catch (e) {
         return new NextResponse("Erreur", { status: 500 })
