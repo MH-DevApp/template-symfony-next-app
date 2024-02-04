@@ -122,8 +122,12 @@ class LexikJWTListener
         if ($headerAuthorization) {
             if (!str_contains($headerAuthorization, 'Bearer') ||
                 (
-                    $this->requestStack->getCurrentRequest()->headers->has('x-agent-ip') &&
+                    !$this->requestStack->getCurrentRequest()->headers->has('x-agent-ip') ||
                     $event->getPayload()['ip'] !== $this->requestStack->getCurrentRequest()->headers->get('x-agent-ip')
+                ) ||
+                (
+                    !$this->requestStack->getCurrentRequest()->headers->has('x-user-agent') ||
+                    $event->getPayload()['user-agent'] !== $this->requestStack->getCurrentRequest()->headers->get('x-user-agent')
                 )
             ) {
                 $event->markAsInvalid();
@@ -154,6 +158,10 @@ class LexikJWTListener
 
         if ($this->requestStack->getCurrentRequest()->headers->has('x-agent-ip')) {
             $payload['ip'] = $this->requestStack->getCurrentRequest()->headers->get('x-agent-ip');
+        }
+
+        if ($this->requestStack->getCurrentRequest()->headers->has('x-user-agent')) {
+            $payload['user-agent'] = $this->requestStack->getCurrentRequest()->headers->get('x-user-agent');
         }
 
         $event->setData($payload);
